@@ -3,7 +3,7 @@
     "track_name": "Me Porto Bonito",
     "artists": "Bad Bunny; Chencho Corleone",
     "actual_popularity": 97,
-    "predicted_popularity": 83.6,
+    "predicted_popularity": 69.4,
     "features": {
       "danceability": 0.91,
       "energy": 0.71,
@@ -27,7 +27,7 @@
     "track_name": "Salió El Sol",
     "artists": "Don Omar",
     "actual_popularity": 0,
-    "predicted_popularity": 0.0,
+    "predicted_popularity": 2.9,
     "features": {
       "danceability": 0.89,
       "energy": 0.71,

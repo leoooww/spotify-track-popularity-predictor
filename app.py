@@ -190,6 +190,16 @@ with col2:
     st.dataframe(input_df, use_container_width=True)
 
 
+def predict_config_score(features_dict: dict) -> float:
+    genre_name = features_dict.get("genre", "pop")
+    genre_enc = genre_encoder.transform([genre_name])[0] if genre_name in genre_encoder.classes_ else 0
+    f_map = dict(features_dict)
+    f_map["track_genre"] = genre_enc
+    vec = np.array([[f_map.get(f, 0) for f in feature_names]])
+    val = float(xgb_model.predict(vec)[0])
+    return max(0.0, min(100.0, val))
+
+
 # ── Benchmark Configurations: Best & Worst Songs ──────────────────
 if benchmarks:
     st.markdown("---")
@@ -203,11 +213,12 @@ if benchmarks:
 
     with b_col1:
         best_info = benchmarks.get("best", {})
+        best_pred = predict_config_score(best_info.get("features", {}))
         st.subheader("Best Score Track")
         st.markdown(f"**Track:** {best_info.get('track_name', 'N/A')}")
         st.markdown(f"**Artist:** {best_info.get('artists', 'N/A')}")
         st.markdown(f"**Actual Popularity:** `{best_info.get('actual_popularity', 0)} / 100`")
-        st.markdown(f"**Predicted Score:** `{best_info.get('predicted_popularity', 0)} / 100`")
+        st.markdown(f"**Predicted Score:** `{best_pred:.1f} / 100`")
 
         st.button(
             "Load Best Score Config",
@@ -219,11 +230,12 @@ if benchmarks:
 
     with b_col2:
         worst_info = benchmarks.get("worst", {})
+        worst_pred = predict_config_score(worst_info.get("features", {}))
         st.subheader("Worst Score Track")
         st.markdown(f"**Track:** {worst_info.get('track_name', 'N/A')}")
         st.markdown(f"**Artist:** {worst_info.get('artists', 'N/A')}")
         st.markdown(f"**Actual Popularity:** `{worst_info.get('actual_popularity', 0)} / 100`")
-        st.markdown(f"**Predicted Score:** `{worst_info.get('predicted_popularity', 0)} / 100`")
+        st.markdown(f"**Predicted Score:** `{worst_pred:.1f} / 100`")
 
         st.button(
             "Load Worst Score Config",

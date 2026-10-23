@@ -11,3 +11,4 @@ lxml>=4.9
 html5lib>=1.1
 fsspec[http]>=2024.0
 huggingface_hub>=0.20
+joblib>=1.3

@@ -1,0 +1,17 @@
+feature,importance
+track_genre,0.33038798
+artist_rank,0.1322559
+valence,0.044856705
+acousticness,0.044195004
+loudness,0.044138722
+explicit,0.043764707
+tempo,0.0420837
+speechiness,0.040912516
+liveness,0.040505987
+instrumentalness,0.04047419
+energy,0.04042452
+danceability,0.039446015
+duration_ms,0.0390723
+key,0.02810208
+mode,0.025822317
+time_signature,0.023557335

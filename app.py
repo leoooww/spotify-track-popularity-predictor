@@ -4,21 +4,15 @@ Lets users input audio features and predict the expected popularity
 score, compare model performance, and explore feature importances.
 """
 
+import json
+from pathlib import Path
+import joblib
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.preprocessing import LabelEncoder
-from xgboost import XGBRegressor
-
-from src.data_processing import (
-    load_spotify_dataset,
-    scrape_artist_ranks,
-    enrich_with_artist_tier,
-    prepare_features,
-)
-from src.model_training import run_all_models, xgboost_feature_importance, split_data, get_model_registry
 
 # ── Page config ────────────────────────────────────────────────────
 st.set_page_config(
@@ -49,31 +43,42 @@ GENRE_LIST = [
     "trip-hop", "turkish", "world-music",
 ]
 
+MODELS_DIR = Path(__file__).resolve().parent / "models"
+MODEL_PATH = MODELS_DIR / "xgb_model.joblib"
+RESULTS_PATH = MODELS_DIR / "model_comparison.csv"
+FI_PATH = MODELS_DIR / "feature_importance.csv"
+FEATURES_PATH = MODELS_DIR / "feature_names.json"
 
-@st.cache_data(show_spinner="Loading dataset & training models...")
-def load_and_train():
-    """Load data, train all models, and cache the results."""
-    df_raw = load_spotify_dataset(frac=0.5, random_state=1)
-    df_artists = scrape_artist_ranks(use_cache=True)
-    df_enriched = enrich_with_artist_tier(df_raw, df_artists)
-    df = prepare_features(df_enriched)
 
-    results = run_all_models(df)
-    fi = xgboost_feature_importance(df)
+@st.cache_resource(show_spinner="Loading precomputed predictions & models...")
+def load_app_artifacts():
+    """Load precomputed model and evaluation artifacts for instantaneous startup.
 
-    # train the production XGBoost model
-    X_train, X_test, y_train, y_test, feature_names = split_data(df)
-    xgb = get_model_registry()["XGBoost"]
-    xgb.fit(X_train, y_train)
+    If artifacts are missing, gracefully falls back to generating them.
+    """
+    if (
+        MODEL_PATH.exists()
+        and RESULTS_PATH.exists()
+        and FI_PATH.exists()
+        and FEATURES_PATH.exists()
+    ):
+        results = pd.read_csv(RESULTS_PATH)
+        fi = pd.read_csv(FI_PATH)
+        xgb = joblib.load(MODEL_PATH)
+        with open(FEATURES_PATH, "r", encoding="utf-8") as f:
+            feature_names = json.load(f)
+    else:
+        with st.spinner("Precomputed artifacts not found. Training models once to cache..."):
+            from train_and_export import train_and_export
+            results, fi, xgb, feature_names = train_and_export(MODELS_DIR)
 
-    # we also need the label encoder mappings for genre
     genre_encoder = LabelEncoder()
     genre_encoder.fit(GENRE_LIST)
 
-    return df, results, fi, xgb, feature_names, genre_encoder
+    return results, fi, xgb, feature_names, genre_encoder
 
 
-df, results, fi, xgb_model, feature_names, genre_encoder = load_and_train()
+results, fi, xgb_model, feature_names, genre_encoder = load_app_artifacts()
 
 
 # ── Sidebar: user inputs ──────────────────────────────────────────

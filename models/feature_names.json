@@ -1,0 +1,18 @@
+[
+  "duration_ms",
+  "explicit",
+  "danceability",
+  "energy",
+  "key",
+  "loudness",
+  "mode",
+  "speechiness",
+  "acousticness",
+  "instrumentalness",
+  "liveness",
+  "valence",
+  "tempo",
+  "time_signature",
+  "track_genre",
+  "artist_rank"
+]

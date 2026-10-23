@@ -9,8 +9,14 @@ Music labels, playlist curators, and independent artists can use this model to *
 ## Architecture
 
 ```
-├── app.py                  # Streamlit interactive dashboard
+├── app.py                  # Streamlit interactive dashboard (loads instantly from models/)
+├── train_and_export.py     # Script to train and export models & metrics
 ├── projet_prama.py         # CLI pipeline runner
+├── models/                 # Precomputed artifacts for instant app startup
+│   ├── xgb_model.joblib    # Trained production XGBoost model
+│   ├── model_comparison.csv# Benchmark comparison metrics
+│   ├── feature_importance.csv # Feature importances
+│   └── feature_names.json  # Feature schema
 ├── src/
 │   ├── data_processing.py  # Data loading, scraping, feature engineering
 │   └── model_training.py   # Model registry, training, evaluation

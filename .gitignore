@@ -18,6 +18,9 @@ env/
 .DS_Store
 Thumbs.db
 
+# Agent configs
+.agents/
+
 # Scraped data cache
 data/cache/
 

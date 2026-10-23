@@ -9,7 +9,7 @@ Music labels, playlist curators, and independent artists can use this model to *
 ## Architecture
 
 ```
-├── app.py                  # Streamlit interactive dashboard (loads instantly from models/)
+├── app.py                  # Streamlit interactive dashboard with Spotify song searcher
 ├── train_and_export.py     # Script to train and export models & metrics
 ├── projet_prama.py         # CLI pipeline runner
 ├── models/                 # Precomputed artifacts for instant app startup
@@ -21,6 +21,7 @@ Music labels, playlist curators, and independent artists can use this model to *
 │   ├── data_processing.py  # Data loading, scraping, feature engineering
 │   └── model_training.py   # Model registry, training, evaluation
 ├── data/
+│   ├── spotify_songs.parquet # 80k+ deduplicated tracks for instant search
 │   └── cache/              # Cached artist tier data (auto-generated)
 ├── requirements.txt
 └── .gitignore

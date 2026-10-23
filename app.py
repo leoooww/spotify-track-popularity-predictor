@@ -24,34 +24,43 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@100..1000&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,slnt,wdth,wght,GRAD,ROND@8..144,-10..0,25..150,100..1000,-400..400,0..100&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
 
-    /* Primary font applied to standard text containers */
-    html, body, .stApp, .stMarkdown, .stText, h1, h2, h3, h4, h5, h6, p, label, input, textarea {
-        font-family: 'Google Sans Flex', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    /* 1. Base font-family on root container and typography elements */
+    html, body, .stApp,
+    h1, h2, h3, h4, h5, h6,
+    p, label, input, textarea, select,
+    .stMarkdown, .stText, .stCaption,
+    .stButton > button, .stDownloadButton > button,
+    .stSelectbox, .stMultiSelect, .stRadio, .stCheckbox,
+    .stSlider, .stNumberInput, .stTextInput,
+    .stMetric, [data-testid="stMetricValue"], [data-testid="stMetricLabel"],
+    [data-testid="stTable"], [data-testid="stDataFrame"],
+    [data-testid="stSidebar"] {
+        font-family: 'Google Sans Flex', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     }
 
-    /* Standard buttons inherit Google Sans Flex */
-    button:not([data-testid*="Sidebar"]):not([data-testid="stIcon"]) {
-        font-family: 'Google Sans Flex', 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* 2. Code and monospace blocks */
+    code, pre, pre *, code *, kbd {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace !important;
     }
 
-    /* Preserve Material Symbols Rounded for Streamlit sidebar toggle, chevron, and system icons */
-    [data-testid="stIcon"],
-    [data-testid*="stSidebarCollapseButton"] *,
-    [data-testid*="stSidebarExpandButton"] *,
-    [data-testid*="stSidebarCollapseButton"],
-    [data-testid*="stSidebarExpandButton"],
-    [data-testid*="SidebarCollapsedControl"] *,
-    [data-testid*="SidebarCollapsedControl"],
-    [data-testid="stSidebarNav"] *,
-    span[data-testid="stIconMaterial"],
-    span[class*="e1vmumty"],
+    /* 3. MATERIAL SYMBOLS & ICONS: Strictly target icon spans to preserve glyphs without breaking toolbar flex containers */
+    [data-testid="stIconMaterial"],
+    [data-testid*="Icon"]:not([data-testid="stChatMessageAvatarImage"]),
+    [data-testid*="icon"],
+    span[translate="no"],
     .material-symbols-rounded,
-    [class*="material-symbols"] {
-        font-family: 'Material Symbols Rounded', 'Material Icons' !important;
+    .material-symbols-outlined,
+    .material-icons,
+    span[class*="e1vmumty"],
+    [data-testid="stSidebarCollapseButton"] span,
+    [data-testid="stExpandSidebarButton"] span,
+    [data-testid="collapsedControl"] span,
+    [data-baseweb="popover"] span[translate="no"],
+    [data-baseweb="menu"] span[translate="no"] {
+        font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', 'Material Icons' !important;
         font-weight: normal !important;
         font-style: normal !important;
         font-feature-settings: 'liga' 1 !important;
@@ -62,6 +71,22 @@ st.markdown(
         white-space: nowrap !important;
         direction: ltr !important;
         -webkit-font-smoothing: antialiased !important;
+    }
+
+    /* 4. Spotify Green Primary Accent */
+    .stButton > button[kind="primary"] {
+        background-color: #1DB954 !important;
+        color: #ffffff !important;
+        border-color: #1DB954 !important;
+    }
+    .stButton > button:hover {
+        border-color: #1DB954 !important;
+    }
+    div[data-baseweb="slider"] div[role="slider"] {
+        background-color: #1DB954 !important;
+    }
+    div[data-baseweb="tab-highlight"] {
+        background-color: #1DB954 !important;
     }
     </style>
     """,
@@ -602,7 +627,7 @@ with tab1:
         color_continuous_scale=["#1DB954", "#0a3d1c"],
         title="Model Comparison — MSE (lower is better)",
     )
-    fig_mse.update_layout(xaxis_tickangle=-45)
+    fig_mse.update_layout(xaxis_tickangle=-45, font_family="Google Sans Flex, sans-serif")
     st.plotly_chart(fig_mse, use_container_width=True)
 
 with tab2:
@@ -613,7 +638,7 @@ with tab2:
         color_continuous_scale="Greens",
         title="Model Comparison — R² (higher is better)",
     )
-    fig_r2.update_layout(xaxis_tickangle=-45)
+    fig_r2.update_layout(xaxis_tickangle=-45, font_family="Google Sans Flex, sans-serif")
     st.plotly_chart(fig_r2, use_container_width=True)
 
 st.dataframe(
@@ -634,7 +659,7 @@ fig_fi = px.bar(
     color_continuous_scale="Viridis",
     title="Feature Importances — XGBoost Regressor",
 )
-fig_fi.update_layout(yaxis=dict(autorange="reversed"), height=500)
+fig_fi.update_layout(yaxis=dict(autorange="reversed"), height=500, font_family="Google Sans Flex, sans-serif")
 st.plotly_chart(fig_fi, use_container_width=True)
 
 st.caption(

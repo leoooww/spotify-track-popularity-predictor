@@ -119,19 +119,31 @@ for feat, default_val in DEFAULT_CONFIG.items():
 # ── Sidebar: preset buttons & user inputs ─────────────────────────
 st.sidebar.header("Presets")
 col_p1, col_p2 = st.sidebar.columns(2)
-if col_p1.button("Best Score", use_container_width=True, help="Load features for the highest scoring track"):
-    if "best" in benchmarks:
-        apply_preset(benchmarks["best"]["features"])
-        st.rerun()
+col_p1.button(
+    "Best Score",
+    key="sb_best",
+    use_container_width=True,
+    help="Load features for the highest scoring track",
+    on_click=apply_preset,
+    args=(benchmarks.get("best", {}).get("features", DEFAULT_CONFIG),),
+)
 
-if col_p2.button("Worst Score", use_container_width=True, help="Load features for the lowest scoring track"):
-    if "worst" in benchmarks:
-        apply_preset(benchmarks["worst"]["features"])
-        st.rerun()
+col_p2.button(
+    "Worst Score",
+    key="sb_worst",
+    use_container_width=True,
+    help="Load features for the lowest scoring track",
+    on_click=apply_preset,
+    args=(benchmarks.get("worst", {}).get("features", DEFAULT_CONFIG),),
+)
 
-if st.sidebar.button("Reset to Defaults", use_container_width=True):
-    apply_preset(DEFAULT_CONFIG)
-    st.rerun()
+st.sidebar.button(
+    "Reset to Defaults",
+    key="sb_reset",
+    use_container_width=True,
+    on_click=apply_preset,
+    args=(DEFAULT_CONFIG,),
+)
 
 st.sidebar.markdown("---")
 st.sidebar.header("Track Features")
@@ -226,9 +238,13 @@ if benchmarks:
         st.markdown(f"**Actual Popularity:** `{best_info.get('actual_popularity', 0)} / 100`")
         st.markdown(f"**Predicted Score:** `{best_info.get('predicted_popularity', 0)} / 100`")
 
-        if st.button("Load Best Score Config", key="btn_load_best", use_container_width=True):
-            apply_preset(best_info["features"])
-            st.rerun()
+        st.button(
+            "Load Best Score Config",
+            key="btn_load_best",
+            use_container_width=True,
+            on_click=apply_preset,
+            args=(best_info.get("features", DEFAULT_CONFIG),),
+        )
 
     with b_col2:
         worst_info = benchmarks.get("worst", {})
@@ -238,9 +254,13 @@ if benchmarks:
         st.markdown(f"**Actual Popularity:** `{worst_info.get('actual_popularity', 0)} / 100`")
         st.markdown(f"**Predicted Score:** `{worst_info.get('predicted_popularity', 0)} / 100`")
 
-        if st.button("Load Worst Score Config", key="btn_load_worst", use_container_width=True):
-            apply_preset(worst_info["features"])
-            st.rerun()
+        st.button(
+            "Load Worst Score Config",
+            key="btn_load_worst",
+            use_container_width=True,
+            on_click=apply_preset,
+            args=(worst_info.get("features", DEFAULT_CONFIG),),
+        )
 
     with st.expander("Compare Features Side-by-Side"):
         best_feats = benchmarks.get("best", {}).get("features", {})

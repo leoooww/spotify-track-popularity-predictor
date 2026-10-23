@@ -116,36 +116,7 @@ for feat, default_val in DEFAULT_CONFIG.items():
         st.session_state[f"feat_{feat}"] = default_val
 
 
-# ── Sidebar: preset buttons & user inputs ─────────────────────────
-st.sidebar.header("Presets")
-col_p1, col_p2 = st.sidebar.columns(2)
-col_p1.button(
-    "Best Score",
-    key="sb_best",
-    use_container_width=True,
-    help="Load features for the highest scoring track",
-    on_click=apply_preset,
-    args=(benchmarks.get("best", {}).get("features", DEFAULT_CONFIG),),
-)
-
-col_p2.button(
-    "Worst Score",
-    key="sb_worst",
-    use_container_width=True,
-    help="Load features for the lowest scoring track",
-    on_click=apply_preset,
-    args=(benchmarks.get("worst", {}).get("features", DEFAULT_CONFIG),),
-)
-
-st.sidebar.button(
-    "Reset to Defaults",
-    key="sb_reset",
-    use_container_width=True,
-    on_click=apply_preset,
-    args=(DEFAULT_CONFIG,),
-)
-
-st.sidebar.markdown("---")
+# ── Sidebar: user inputs ──────────────────────────────────────────
 st.sidebar.header("Track Features")
 
 danceability = st.sidebar.slider("Danceability", 0.0, 1.0, key="feat_danceability", step=0.01)
@@ -261,6 +232,15 @@ if benchmarks:
             on_click=apply_preset,
             args=(worst_info.get("features", DEFAULT_CONFIG),),
         )
+
+    st.button(
+        "Reset to Defaults",
+        key="btn_reset_defaults",
+        use_container_width=True,
+        on_click=apply_preset,
+        args=(DEFAULT_CONFIG,),
+        help="Reset all feature sliders and dropdowns to default values",
+    )
 
     with st.expander("Compare Features Side-by-Side"):
         best_feats = benchmarks.get("best", {}).get("features", {})

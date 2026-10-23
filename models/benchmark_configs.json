@@ -1,0 +1,50 @@
+{
+  "best": {
+    "track_name": "Me Porto Bonito",
+    "artists": "Bad Bunny; Chencho Corleone",
+    "actual_popularity": 97,
+    "predicted_popularity": 83.6,
+    "features": {
+      "danceability": 0.91,
+      "energy": 0.71,
+      "valence": 0.42,
+      "loudness": -5.1,
+      "speechiness": 0.08,
+      "acousticness": 0.09,
+      "instrumentalness": 0.0,
+      "liveness": 0.09,
+      "tempo": 92.0,
+      "duration_ms": 178567,
+      "key": 1,
+      "mode": 0,
+      "time_signature": 4,
+      "explicit": 1,
+      "genre": "latino",
+      "artist_rank": 1
+    }
+  },
+  "worst": {
+    "track_name": "Salió El Sol",
+    "artists": "Don Omar",
+    "actual_popularity": 0,
+    "predicted_popularity": 0.0,
+    "features": {
+      "danceability": 0.89,
+      "energy": 0.71,
+      "valence": 0.96,
+      "loudness": -5.9,
+      "speechiness": 0.09,
+      "acousticness": 0.11,
+      "instrumentalness": 0.01,
+      "liveness": 0.04,
+      "tempo": 110.0,
+      "duration_ms": 317280,
+      "key": 4,
+      "mode": 0,
+      "time_signature": 4,
+      "explicit": 0,
+      "genre": "latin",
+      "artist_rank": 1
+    }
+  }
+}

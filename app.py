@@ -17,7 +17,6 @@ from sklearn.preprocessing import LabelEncoder
 # ── Page config ────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Spotify Popularity Predictor",
-    page_icon="🎵",
     layout="wide",
 )
 
@@ -48,11 +47,31 @@ MODEL_PATH = MODELS_DIR / "xgb_model.joblib"
 RESULTS_PATH = MODELS_DIR / "model_comparison.csv"
 FI_PATH = MODELS_DIR / "feature_importance.csv"
 FEATURES_PATH = MODELS_DIR / "feature_names.json"
+BENCHMARKS_PATH = MODELS_DIR / "benchmark_configs.json"
+
+DEFAULT_CONFIG = {
+    "danceability": 0.55,
+    "energy": 0.65,
+    "valence": 0.50,
+    "loudness": -7.0,
+    "speechiness": 0.05,
+    "acousticness": 0.20,
+    "instrumentalness": 0.0,
+    "liveness": 0.15,
+    "tempo": 120.0,
+    "duration_ms": 210000,
+    "key": 0,
+    "mode": 1,
+    "time_signature": 4,
+    "explicit": 0,
+    "genre": "pop",
+    "artist_rank": 2,
+}
 
 
 @st.cache_resource(show_spinner="Loading precomputed predictions & models...")
 def load_app_artifacts():
-    """Load precomputed model and evaluation artifacts for instantaneous startup.
+    """Load precomputed model, evaluation, and benchmark artifacts for instant startup.
 
     If artifacts are missing, gracefully falls back to generating them.
     """
@@ -72,40 +91,73 @@ def load_app_artifacts():
             from train_and_export import train_and_export
             results, fi, xgb, feature_names = train_and_export(MODELS_DIR)
 
+    benchmarks = {}
+    if BENCHMARKS_PATH.exists():
+        with open(BENCHMARKS_PATH, "r", encoding="utf-8") as f:
+            benchmarks = json.load(f)
+
     genre_encoder = LabelEncoder()
     genre_encoder.fit(GENRE_LIST)
 
-    return results, fi, xgb, feature_names, genre_encoder
+    return results, fi, xgb, feature_names, benchmarks, genre_encoder
 
 
-results, fi, xgb_model, feature_names, genre_encoder = load_app_artifacts()
+results, fi, xgb_model, feature_names, benchmarks, genre_encoder = load_app_artifacts()
 
 
-# ── Sidebar: user inputs ──────────────────────────────────────────
-st.sidebar.header("🎧 Track Features")
+# ── State helpers for benchmark presets ────────────────────────────
+def apply_preset(config_dict: dict):
+    for key, val in config_dict.items():
+        st.session_state[f"feat_{key}"] = val
 
-danceability = st.sidebar.slider("Danceability", 0.0, 1.0, 0.55, 0.01)
-energy = st.sidebar.slider("Energy", 0.0, 1.0, 0.65, 0.01)
-valence = st.sidebar.slider("Valence", 0.0, 1.0, 0.50, 0.01)
-loudness = st.sidebar.slider("Loudness (dB)", -60.0, 0.0, -7.0, 0.5)
-speechiness = st.sidebar.slider("Speechiness", 0.0, 1.0, 0.05, 0.01)
-acousticness = st.sidebar.slider("Acousticness", 0.0, 1.0, 0.20, 0.01)
-instrumentalness = st.sidebar.slider("Instrumentalness", 0.0, 1.0, 0.0, 0.01)
-liveness = st.sidebar.slider("Liveness", 0.0, 1.0, 0.15, 0.01)
-tempo = st.sidebar.slider("Tempo (BPM)", 40.0, 250.0, 120.0, 1.0)
-duration_ms = st.sidebar.number_input("Duration (ms)", 30000, 600000, 210000, 1000)
-key = st.sidebar.selectbox("Key", list(range(12)), index=0)
-mode = st.sidebar.selectbox("Mode (0=Minor, 1=Major)", [0, 1], index=1)
-time_signature = st.sidebar.selectbox("Time Signature", [3, 4, 5], index=1)
-explicit = st.sidebar.selectbox("Explicit", [0, 1], index=0)
-genre = st.sidebar.selectbox("Genre", GENRE_LIST, index=GENRE_LIST.index("pop"))
-artist_rank = st.sidebar.selectbox("Artist Rank Tier (1=Top, 5=Unknown)", [1, 2, 3, 4, 5], index=2)
+
+for feat, default_val in DEFAULT_CONFIG.items():
+    if f"feat_{feat}" not in st.session_state:
+        st.session_state[f"feat_{feat}"] = default_val
+
+
+# ── Sidebar: preset buttons & user inputs ─────────────────────────
+st.sidebar.header("Presets")
+col_p1, col_p2 = st.sidebar.columns(2)
+if col_p1.button("Best Score", use_container_width=True, help="Load features for the highest scoring track"):
+    if "best" in benchmarks:
+        apply_preset(benchmarks["best"]["features"])
+        st.rerun()
+
+if col_p2.button("Worst Score", use_container_width=True, help="Load features for the lowest scoring track"):
+    if "worst" in benchmarks:
+        apply_preset(benchmarks["worst"]["features"])
+        st.rerun()
+
+if st.sidebar.button("Reset to Defaults", use_container_width=True):
+    apply_preset(DEFAULT_CONFIG)
+    st.rerun()
+
+st.sidebar.markdown("---")
+st.sidebar.header("Track Features")
+
+danceability = st.sidebar.slider("Danceability", 0.0, 1.0, key="feat_danceability", step=0.01)
+energy = st.sidebar.slider("Energy", 0.0, 1.0, key="feat_energy", step=0.01)
+valence = st.sidebar.slider("Valence", 0.0, 1.0, key="feat_valence", step=0.01)
+loudness = st.sidebar.slider("Loudness (dB)", -60.0, 0.0, key="feat_loudness", step=0.5)
+speechiness = st.sidebar.slider("Speechiness", 0.0, 1.0, key="feat_speechiness", step=0.01)
+acousticness = st.sidebar.slider("Acousticness", 0.0, 1.0, key="feat_acousticness", step=0.01)
+instrumentalness = st.sidebar.slider("Instrumentalness", 0.0, 1.0, key="feat_instrumentalness", step=0.01)
+liveness = st.sidebar.slider("Liveness", 0.0, 1.0, key="feat_liveness", step=0.01)
+tempo = st.sidebar.slider("Tempo (BPM)", 40.0, 250.0, key="feat_tempo", step=1.0)
+duration_ms = st.sidebar.number_input("Duration (ms)", 30000, 600000, key="feat_duration_ms", step=1000)
+key = st.sidebar.selectbox("Key", list(range(12)), key="feat_key")
+mode = st.sidebar.selectbox("Mode (0=Minor, 1=Major)", [0, 1], key="feat_mode")
+time_signature = st.sidebar.selectbox("Time Signature", [3, 4, 5], key="feat_time_signature")
+explicit = st.sidebar.selectbox("Explicit", [0, 1], key="feat_explicit")
+genre = st.sidebar.selectbox("Genre", GENRE_LIST, key="feat_genre")
+artist_rank = st.sidebar.selectbox("Artist Rank Tier (1=Top, 5=Unknown)", [1, 2, 3, 4, 5], key="feat_artist_rank")
 
 genre_encoded = genre_encoder.transform([genre])[0] if genre in genre_encoder.classes_ else 0
 
 
 # ── Main layout ───────────────────────────────────────────────────
-st.title("🎵 Spotify Track Popularity Predictor")
+st.title("Spotify Track Popularity Predictor")
 st.markdown(
     "Predict the expected Spotify popularity score based on audio features, "
     "genre, and artist ranking tier."
@@ -142,11 +194,11 @@ with col1:
     st.metric(label="Score", value=f"{prediction:.1f} / 100")
 
     if prediction >= 70:
-        st.success("🔥 High predicted popularity!")
+        st.success("High predicted popularity!")
     elif prediction >= 40:
-        st.info("📊 Moderate predicted popularity.")
+        st.info("Moderate predicted popularity.")
     else:
-        st.warning("📉 Low predicted popularity.")
+        st.warning("Low predicted popularity.")
 
 with col2:
     st.subheader("Your Input Features")
@@ -155,9 +207,78 @@ with col2:
     st.dataframe(input_df, use_container_width=True)
 
 
+# ── Benchmark Configurations: Best & Worst Songs ──────────────────
+if benchmarks:
+    st.markdown("---")
+    st.header("Benchmark Song Configurations")
+    st.markdown(
+        "Explore and load the exact audio feature profiles from the highest-scoring "
+        "and lowest-scoring tracks in the dataset."
+    )
+
+    b_col1, b_col2 = st.columns(2)
+
+    with b_col1:
+        best_info = benchmarks.get("best", {})
+        st.subheader("Best Score Track")
+        st.markdown(f"**Track:** {best_info.get('track_name', 'N/A')}")
+        st.markdown(f"**Artist:** {best_info.get('artists', 'N/A')}")
+        st.markdown(f"**Actual Popularity:** `{best_info.get('actual_popularity', 0)} / 100`")
+        st.markdown(f"**Predicted Score:** `{best_info.get('predicted_popularity', 0)} / 100`")
+
+        if st.button("Load Best Score Config", key="btn_load_best", use_container_width=True):
+            apply_preset(best_info["features"])
+            st.rerun()
+
+    with b_col2:
+        worst_info = benchmarks.get("worst", {})
+        st.subheader("Worst Score Track")
+        st.markdown(f"**Track:** {worst_info.get('track_name', 'N/A')}")
+        st.markdown(f"**Artist:** {worst_info.get('artists', 'N/A')}")
+        st.markdown(f"**Actual Popularity:** `{worst_info.get('actual_popularity', 0)} / 100`")
+        st.markdown(f"**Predicted Score:** `{worst_info.get('predicted_popularity', 0)} / 100`")
+
+        if st.button("Load Worst Score Config", key="btn_load_worst", use_container_width=True):
+            apply_preset(worst_info["features"])
+            st.rerun()
+
+    with st.expander("Compare Features Side-by-Side"):
+        best_feats = benchmarks.get("best", {}).get("features", {})
+        worst_feats = benchmarks.get("worst", {}).get("features", {})
+        curr_feats = {
+            "danceability": danceability,
+            "energy": energy,
+            "valence": valence,
+            "loudness": loudness,
+            "speechiness": speechiness,
+            "acousticness": acousticness,
+            "instrumentalness": instrumentalness,
+            "liveness": liveness,
+            "tempo": tempo,
+            "duration_ms": duration_ms,
+            "key": key,
+            "mode": mode,
+            "time_signature": time_signature,
+            "explicit": explicit,
+            "genre": genre,
+            "artist_rank": artist_rank,
+        }
+
+        comparison_data = []
+        for k in curr_feats.keys():
+            comparison_data.append({
+                "Feature": k,
+                "Best Score Song": str(best_feats.get(k, "N/A")),
+                "Worst Score Song": str(worst_feats.get(k, "N/A")),
+                "Current Input": str(curr_feats.get(k, "N/A")),
+            })
+
+        st.dataframe(pd.DataFrame(comparison_data), use_container_width=True)
+
+
 # ── Model comparison ─────────────────────────────────────────────
 st.markdown("---")
-st.header("📊 Model Performance Comparison")
+st.header("Model Performance Comparison")
 
 tab1, tab2 = st.tabs(["Mean Squared Error", "R² Score"])
 
@@ -191,7 +312,7 @@ st.dataframe(
 
 # ── Feature importances ──────────────────────────────────────────
 st.markdown("---")
-st.header("🧬 XGBoost Feature Importances")
+st.header("XGBoost Feature Importances")
 
 fig_fi = px.bar(
     fi,
